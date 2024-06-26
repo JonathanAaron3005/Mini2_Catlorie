@@ -15,7 +15,7 @@ struct HomeView: View {
     @Query var badges: [Badge]
     @Query var cat: [Cat]
     @State private var progress: Float = 0.5
-        
+    
     var body: some View {
         
         NavigationStack {
@@ -23,23 +23,26 @@ struct HomeView: View {
                 VStack {
                     ExtractedView()
                     
-                    HalfCircularProgressView(percentage: $progress)
+                    HalfCircularProgressView(percentage:Double(user[0].dailyNutrition[0].calories/user[0].targetCalories!))
                         .frame(width: 250.0, height: 250.0)
                         .padding()
                         .padding(.bottom, -120)
                     
-                    Image("cat_fit_normal")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 200)
-                        .offset(x: 20)
+                    if(cat.count > 0){
+                        Image(cat[0].image!)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 200)
+                    }
+                    
+                    //                        .offset(x: 20)
                     
                     //foreach badge, offset => badge.x badge.y
                     
                     HStack(spacing: -20){
-                        CircularProgressView(percentage: 0.6, category: "A")
-                        CircularProgressView(percentage: 0.8, category: "B")
-                        CircularProgressView(percentage: 0.4, category: "C")
+                        CircularProgressView(percentage: Double(user[0].dailyNutrition[0].protein/user[0].targetProtein!), category: "A")
+                        CircularProgressView(percentage: Double(user[0].dailyNutrition[0].carbohydrates/user[0].targetCarbohydrates!), category: "B")
+                        CircularProgressView(percentage: Double(user[0].dailyNutrition[0].fat/user[0].targetFat!), category: "C")
                     }
                     .padding(.bottom, -20)
                     
@@ -67,7 +70,7 @@ struct HomeView: View {
                                 .cornerRadius(20)
                                 .frame(height: 350)
                                 .opacity(0.3)
-                          
+                            
                             VStack {
                                 HStack {
                                     Image(systemName: "trophy")
@@ -91,107 +94,117 @@ struct HomeView: View {
                 .padding()
             }
         }
-                .onAppear{
-                    deleteAllUsers()
-                    deleteAllCats()
-                    deleteAllBadges()
-                    addSampleData()
-                    if let user = user.first {
-                        print(user.dailyNutrition[0].calories)
-                    }
-                }
+        .onAppear{
+            deleteAllUsers()
+            deleteAllCats()
+            deleteAllBadges()
+            addSampleData()
+            if let user = user.first {
+                print(user.dailyNutrition[0].calories)
+                print(user.dailyNutrition.count)
+            }
+            print(cat.count)
+        }
     }
     
-        func deleteAllUsers() {
-            for user in user {
-                modelContext.delete(user)
-            }
-    
-            do {
-                try modelContext.save()
-            } catch {
-                print("Error saving context after deletion: \(error.localizedDescription)")
-            }
+    func deleteAllUsers() {
+        for user in user {
+            modelContext.delete(user)
         }
-    
-        func deleteAllCats() {
-            for cat in cat {
-                modelContext.delete(cat)
-            }
-    
-            do {
-                try modelContext.save()
-            } catch {
-                print("Error saving context after deletion: \(error.localizedDescription)")
-            }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving context after deletion: \(error.localizedDescription)")
         }
+    }
     
-        func deleteAllBadges() {
-            for badge in badges {
-                modelContext.delete(badge)
-            }
-    
-            do {
-                try modelContext.save()
-            } catch {
-                print("Error saving context after deletion: \(error.localizedDescription)")
-            }
+    func deleteAllCats() {
+        for cat in cat {
+            modelContext.delete(cat)
         }
-    
-        func addSampleData(){
-            let badge1 =  Badge(name: "Hat 1", desc: "A cool hat", image: "hatpic", category: .hat, price: 10, x: 185, y: 32)
-            let badge2 = Badge(name: "Hat 2", desc: "A cool hat", image: "hat", category: .hat, price: 10, x: 185, y: 32)
-            let badge3 = Badge(name: "Hat 3", desc: "A cool hat", image: "party-hat", category: .hat, price: 10, x: 185, y: 32)
-            let badge4 = Badge(name: "Tree 1", desc: "A tree badge", image: "treepic", category: .tree, price: 10, x: 185, y: 32)
-            
-            badge1.isUnlocked = true
-            badge2.isUnlocked = true
-            badge3.isUnlocked = true
-    
-            modelContext.insert(badge1)
-            modelContext.insert(badge2)
-            modelContext.insert(badge3)
-            modelContext.insert(badge4)
-    
-            let cat = Cat(name: "Hose", image: "cat_fit_normal", weight: 20)
-            modelContext.insert(cat)
-            
-            let user = User(name: "Aaron",
-                            targetCalories: 2000,
-                            targetCarbohydrates: 225,
-                            targetProtein: 65,
-                            targetFat: 45,
-                            cat: cat
-            )
-            modelContext.insert(user)
-    
-            user.dailyNutrition.append(DailyNutrition(date: Date(),
-                                                      calories: 1800,
-                                                      protein: 60,
-                                                      carbohydrates: 200,
-                                                      fat: 50)
-            )
-            user.dailyNutrition.append(DailyNutrition(date:
-                                                        Calendar.current.date(byAdding: .day, value: -1, to: Date())!,
-                                                      calories: 2200,
-                                                      protein: 80,
-                                                      carbohydrates: 250,
-                                                      fat: 70)
-            )
-            user.dailyNutrition.append(DailyNutrition(date:
-                                                        Calendar.current.date(byAdding: .day, value: -2, to: Date())!,
-                                                      calories: 1500,
-                                                      protein: 55,
-                                                      carbohydrates: 150,
-                                                      fat: 45)
-            )
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving context after deletion: \(error.localizedDescription)")
         }
+    }
+    
+    func deleteAllBadges() {
+        for badge in badges {
+            modelContext.delete(badge)
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving context after deletion: \(error.localizedDescription)")
+        }
+    }
+    
+    func addSampleData(){
+        let badge1 =  Badge(name: "Hat 1", desc: "A cool hat", image: "hatpic", category: .hat, price: 10, x: 170, y: 35)
+        let badge2 = Badge(name: "Hat 2", desc: "A cool hat", image: "hat", category: .hat, price: 10, x: 185, y: 32)
+        let badge3 = Badge(name: "Hat 3", desc: "A cool hat", image: "party-hat", category: .hat, price: 10, x: 185, y: 32)
+        let badge4 = Badge(name: "Tree 1", desc: "A tree badge", image: "treepic", category: .tree, price: 10, x: 185, y: 32)
+        
+        badge1.isUnlocked = true
+        badge2.isUnlocked = true
+        badge3.isUnlocked = true
+        
+        modelContext.insert(badge1)
+        modelContext.insert(badge2)
+        modelContext.insert(badge3)
+        modelContext.insert(badge4)
+        
+//        let cat = Cat(catWeightCategory: .overweight, catExpressionCategory: .happy)
+//        modelContext.insert(cat)
+        
+        let user = User(name: "Aaron",
+                        targetCalories: 2000,
+                        targetCarbohydrates: 225,
+                        targetProtein: 65,
+                        targetFat: 45
+        )
+        modelContext.insert(user)
+        
+        user.dailyNutrition.append(DailyNutrition(date: Date(),
+                                                  calories: 1000,
+                                                  protein: 60,
+                                                  carbohydrates: 5,
+                                                  fat: 50)
+        )
+        
+        user.cat.catWeightCategory = user.getCatWeightCategory()
+//        print("test \(user.cat.catWeightCategory)")
+        
+        
+        user.cat.updateImage(catWeightCategory: user.getCatWeightCategory(), catExpressionCategory: user.getCatExpressionCategory())
+        
+//        user.dailyNutrition.append(DailyNutrition(date:
+//                                                    Calendar.current.date(byAdding: .day, value: -1, to: Date())!,
+//                                                  calories: 2200,
+//                                                  protein: 80,
+//                                                  carbohydrates: 250,
+//                                                  fat: 70)
+//        )
+//        user.dailyNutrition.append(DailyNutrition(date:
+//                                                    Calendar.current.date(byAdding: .day, value: -2, to: Date())!,
+//                                                  calories: 1500,
+//                                                  protein: 55,
+//                                                  carbohydrates: 150,
+//                                                  fat: 45)
+//        )
+        
+        
+    }
 }
 
-#Preview {
-    HomeView()
-        .preferredColorScheme(.light)
-}
+//#Preview {
+//    HomeView()
+//        .preferredColorScheme(.light)
+//}
 
 struct ExtractedView: View {
     var body: some View {
