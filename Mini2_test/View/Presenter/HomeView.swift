@@ -14,6 +14,8 @@ struct HomeView: View {
     @Query var user: [User]
     @Query var badges: [Badge]
     @Query var cat: [Cat]
+    @Query var challenges: [Challenge]
+
     @State private var progress: Float = 0.5
     
     var body: some View {
@@ -80,8 +82,8 @@ struct HomeView: View {
                                 .opacity(0.8)
                                 .padding(.bottom, 20)
                                 
-                                ForEach(1..<4) {count in
-                                    ChallengeListItem(challengeCount: count, reward: 10, challengeTitle: "Drink Milk")
+                                ForEach(challenges) {challenge in
+                                    ChallengeListItem(challengeCount: challenge.isCompleted ? 1 : 123, reward: challenge.reward, challengeTitle: challenge.title)
                                 }
                                 .offset(x: -45)
                             }
@@ -122,6 +124,39 @@ struct HomeView: View {
     func deleteAllCats() {
         for cat in cat {
             modelContext.delete(cat)
+            deleteAllChallenges()
+            addSampleData()
+            print(user.count)
+            for challenge in challenges {
+                handleValidateChallenge(challenge: challenge)
+            }
+
+        }
+    }
+    
+    func handleValidateChallenge(challenge: Challenge){
+        if let timeObj = Date().withLocalTime(hour: 10, minute: 0) {
+            let foodInfo = FoodInfo(food_id: "", fv_grade: "", g_per_serving: 20, display_name: "egg", nutrition: Nutrition(calories_100g: 50.0))
+            challenge.validate(foodInfo: foodInfo, inputTime: timeObj)
+            print("Is challenge completed? \(challenge.isCompleted)")
+        }
+    }
+    
+    func deleteAllUsers() {
+        for user in user {
+            modelContext.delete(user)
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving context after deletion: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteAllCats() {
+        for cat in cat {
+            modelContext.delete(cat)
         }
         
         do {
@@ -143,28 +178,62 @@ struct HomeView: View {
         }
     }
     
+    func deleteAllChallenges() {
+        for c in challenges {
+            modelContext.delete(c)
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving context after deletion: \(error.localizedDescription)")
+        }
+    }
+    
     func addSampleData(){
-        let badge1 =  Badge(name: "Hat 1", desc: "A cool hat", image: "hatpic", category: .hat, price: 10, x: 170, y: 35)
-        let badge2 = Badge(name: "Hat 2", desc: "A cool hat", image: "hat", category: .hat, price: 10, x: 185, y: 32)
-        let badge3 = Badge(name: "Hat 3", desc: "A cool hat", image: "party-hat", category: .hat, price: 10, x: 185, y: 32)
-        let badge4 = Badge(name: "Tree 1", desc: "A tree badge", image: "treepic", category: .tree, price: 10, x: 185, y: 32)
+        modelContext.insert(Challenge(title: "Drink Milk", reward: 10, foodObj: "milk"))
+        if let timeObj = Date().withLocalTime(hour: 10, minute: 0) {
+            modelContext.insert(Challenge(title: "Eat Egg Before 10 am", reward: 20, foodObj: "egg", timeObj: timeObj))
+            print(timeObj)
+        }
+        modelContext.insert(Challenge(title: "Eat Apple", reward: 10, foodObj: "apple"))
+        
+        let badge1 = Badge(image: "Mouse", category: .Toys, price: 10, x: 265, y: 250)
+        let badge2 = Badge(image: "Ball", category: .Toys, price: 10, x: 265, y: 250)
+        let badge3 = Badge(image: "Stick", category: .Toys, price: 10, x: 265, y: 250)
+        let badge4 = Badge(image: "Home", category: .Background, price: 10, x: 100, y: 120)
+        let badge5 = Badge(image: "Bed", category: .Background, price: 10, x: 100, y: 120)
+        let badge6 = Badge(image: "Aquarium", category: .Background, price: 10, x: 100, y: 120)
+        let badge7 = Badge(image: "Can", category: .Foods, price: 10, x: 80, y: 250)
+        let badge8 = Badge(image: "Bag", category: .Foods, price: 10, x: 80, y: 250)
+        let badge9 = Badge(image: "Milk", category: .Foods, price: 10, x: 80, y: 250)
+
         
         badge1.isUnlocked = true
         badge2.isUnlocked = true
         badge3.isUnlocked = true
-        
+        badge4.isUnlocked = true
+        badge5.isUnlocked = true
+        badge6.isUnlocked = true
+        badge7.isUnlocked = true
+        badge8.isUnlocked = true
+        badge9.isUnlocked = true
+
         modelContext.insert(badge1)
         modelContext.insert(badge2)
         modelContext.insert(badge3)
         modelContext.insert(badge4)
-        
-//        let cat = Cat(catWeightCategory: .overweight, catExpressionCategory: .happy)
-//        modelContext.insert(cat)
+        modelContext.insert(badge5)
+        modelContext.insert(badge6)
+        modelContext.insert(badge7)
+        modelContext.insert(badge8)
+        modelContext.insert(badge9)
         
         let user = User(name: "Aaron",
                         targetCalories: 2000,
                         targetCarbohydrates: 225,
                         targetProtein: 65,
+
                         targetFat: 45
         )
         modelContext.insert(user)
@@ -181,6 +250,8 @@ struct HomeView: View {
         
         
         user.cat.updateImage(catWeightCategory: user.getCatWeightCategory(), catExpressionCategory: user.getCatExpressionCategory())
+        
+        user.coin = 100
         
 //        user.dailyNutrition.append(DailyNutrition(date:
 //                                                    Calendar.current.date(byAdding: .day, value: -1, to: Date())!,
@@ -219,7 +290,7 @@ struct ExtractedView: View {
                 Spacer()
                 
                 NavigationLink{
-                    //                    BadgesView()
+                    BadgesView()
                 }label: {
                     ToolBarIcon(text: "100", image: "dollarsign.circle", color: "green")
                 }
